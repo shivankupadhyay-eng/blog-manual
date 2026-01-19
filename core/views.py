@@ -10,7 +10,7 @@ from .serializers import( CustomUserCreateSerializer,CustomUserListSerializer,Cu
                         LoginSerializer, BlogCreateSerializer,BlogListSerializer,BlogUpdateSerializer,
                          CommentCreateSerializer,CommentListSerializer,CommentUpdateSerializer,
                          VoteCreateSerializer,BlogVoteStatsSerializer)
-
+from .pagination import CustomPagination
 
 class CustomUserAPIView(APIView):
 
@@ -108,11 +108,21 @@ class BlogAPIView(APIView):
         )
         return Response(BlogCreateSerializer(blog).data,status=status.HTTP_201_CREATED)
     
-    def get(self,request,id):
-        blog=get_object_or_404(Blog,id=id,is_deleted=False)
-        serializer=BlogListSerializer(blog)
-        return Response(serializer.data,status=status.HTTP_200_OK)
-    
+    def get(self,request):
+        queryset=Blog.objects.filter(is_deleted=False)
+        
+        blog_id=request.query_params.get("id")
+        if blog_id:
+            queryset=queryset.filter(id=blog_id)
+        
+        paginator=CustomPagination()
+        page=paginator.paginate_queryset(queryset,request)
+        
+        serializer=BlogListSerializer(page,many=True)
+        response = paginator.get_paginated_response(serializer.data)
+        response.status_code=status.HTTP_200_OK
+        return response
+
     def put(self,request,id):
         blog=get_object_or_404(Blog,id=id)
         
@@ -169,10 +179,18 @@ class CommentAPIView(APIView):
         blog_id=request.query_params.get("blog")
         if blog_id:
             queryset=queryset.filter(blog_id=blog_id)
-
-        serializer=CommentListSerializer(queryset,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
         
+        paginator=CustomPagination()
+        page=paginator.paginate_queryset(queryset,request)
+        
+        serializer=CommentListSerializer(page,many=True)
+        response = paginator.get_paginated_response(serializer.data)
+        response.status_code=status.HTTP_200_OK
+        return response
+    
+    #   serializer=CommentListSerializer(queryset,many=True)
+    #   return Response(serializer.data,status=status.HTTP_200_OK)
+     
     def patch(self,request,id):
         comment=get_object_or_404(Comment,id=id)
 

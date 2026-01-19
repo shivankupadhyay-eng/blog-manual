@@ -42,22 +42,6 @@ class LoginSerializer(serializers.Serializer):
         data['user']=user
         return data
 
-
-class BlogCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Blog
-        fields=['title','picture','description']
-
-class BlogListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Blog
-        fields="__all__"
-    
-class BlogUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Blog
-        fields=['title','picture','description']
-
 class CommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model=Comment
@@ -72,6 +56,22 @@ class CommentUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model=Comment
         fields=['content']
+
+class BlogCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Blog
+        fields=['title','picture','description']
+
+class BlogListSerializer(serializers.ModelSerializer):
+    comments=CommentListSerializer(many=True,read_only=True)
+    class Meta:
+        model=Blog
+        fields="__all__"
+    
+class BlogUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Blog
+        fields=['title','picture','description']
 
 
 class VoteCreateSerializer(serializers.ModelSerializer):
